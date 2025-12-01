@@ -3,7 +3,7 @@
  * Plugin Name:       410 for WordPress
  * Plugin URI:        https://wordpress.org/plugins/wp-410/
  * Description:       Sends HTTP 410 (Gone) responses to requests for pages that no longer exist on your blog.
- * Version:           0.9.1
+ * Version:           0.9.2
  * Author:            Samir Shah
  * Author URI:        http://rayofsolaris.net/
  * Maintainer:        Matt Calvert
@@ -435,7 +435,21 @@ class WP_410 {
 				$row_html .= '<td><label for="wp-410-' . $k_attr . '"><code>' . $k_text . '</code></label></td>';
 				$row_html .= '</tr>';
 
-				echo wp_kses_post( $row_html );
+				echo wp_kses(
+					$row_html,
+					array(
+						'tr'    => array( 'class' => true ),
+						'td'    => array(),
+						'input' => array(
+							'type'  => true,
+							'name'  => true,
+							'id'    => true,
+							'value' => true,
+						),
+						'label' => array( 'for' => true ),
+						'code'  => array(),
+					)
+				);
 			}
 			echo '</tbody></table></div>';
 
@@ -476,8 +490,23 @@ class WP_410 {
 				$row_html .= '<td><label for="wp-404-' . $k_attr . '"><code>' . $k_text . '</code></label></td>';
 				$row_html .= '</tr>';
 
-				echo wp_kses_post( $row_html );
+				echo wp_kses(
+					$row_html,
+					array(
+						'tr'    => array(),
+						'td'    => array(),
+						'input' => array(
+							'type'  => true,
+							'name'  => true,
+							'id'    => true,
+							'value' => true,
+						),
+						'label' => array( 'for' => true ),
+						'code'  => array(),
+					)
+				);
 			}
+
 			echo '</tbody></table></div>';
 			wp_nonce_field( 'wp-410-settings' );
 			echo '<p class="submit"><input class="button button-primary" type="submit" name="add-to-410-list" value="Add selected entries to 410 list" /></p>';
