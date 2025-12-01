@@ -13,14 +13,13 @@
  * Update URI:        https://wordpress.org/plugins/wp-410/
  *
  * @package           WP_410
+ * @todo              Change file name to class-wp-410.php in version 1.0.0.
  */
-
-
-		// todo change file name to class-wp-410.php - version 1.0.0.
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+
 
 /**
  * Main plugin class for 410 for WordPress.
@@ -100,7 +99,14 @@ class WP_410 {
 	 */
 	private function get_links() {
 		global $wpdb;
-		return $wpdb->get_results( "SELECT gone_key, gone_regex FROM $this->table WHERE is_404 = 0", OBJECT_K );    // indexed by gone_key.
+
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQL.NotPrepared
+		$sql = $wpdb->prepare(
+			"SELECT gone_key, gone_regex FROM {$this->table} WHERE is_404 = %d",
+			0
+		);
+
+		return $wpdb->get_results( $sql, OBJECT_K ); // Indexed by gone_key.
 	}
 
 	/**
@@ -119,8 +125,16 @@ class WP_410 {
 	 */
 	private function get_404s() {
 		global $wpdb;
+
 		$this->concat_404_list();
-		return $wpdb->get_results( "SELECT gone_key, gone_regex FROM $this->table WHERE is_404 = 1 ORDER BY gone_id DESC", OBJECT_K );  // indexed by gone_key.
+
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQL.NotPrepared
+		$sql = $wpdb->prepare(
+			"SELECT gone_key, gone_regex FROM {$this->table} WHERE is_404 = %d ORDER BY gone_id DESC",
+			1
+		);
+
+		return $wpdb->get_results( $sql, OBJECT_K ); // Indexed by gone_key.
 	}
 
 	/**
@@ -137,14 +151,14 @@ class WP_410 {
 		global $wpdb;
 
 		// 404 logging enabled?
-		if ( $is_404 && 0 == $this->max_404_list_length() ) {
+		if ( $is_404 && 0 === $this->max_404_list_length() ) {
 			return;
 		}
 
 		// build regex.
 		$parts = preg_split( '/(\*)/', $key, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY );
 		foreach ( $parts as &$part ) {
-			if ( '*' != $part ) {
+			if ( '*' !== $part ) {
 				$part = preg_quote( $part, '|' );
 			}
 		}
@@ -152,7 +166,15 @@ class WP_410 {
 		$regex = '|^' . implode( '', $parts ) . '$|i';
 
 		// avoid duplicates - messy but MySQL doesn't allow url-length unique keys.
-		if ( $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM `$this->table` WHERE `gone_key` = %s", $key ) ) ) {
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$count = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$this->table} WHERE gone_key = %s",
+				$key
+			)
+		);
+
+		if ( $count > 0 ) {
 			return 0;
 		}
 
@@ -178,9 +200,25 @@ class WP_410 {
 	 */
 	private function concat_404_list() {
 		global $wpdb;
-		$n = intval( $wpdb->get_var( "SELECT COUNT(*) FROM `$this->table` WHERE `is_404` = 1" ) - $this->max_404_list_length() );
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQL.NotPrepared
+		$total_404s = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$this->table} WHERE is_404 = %d",
+				1
+			)
+		);
+
+		$n = $total_404s - $this->max_404_list_length();
+
 		if ( $n > 0 ) {
-			$wpdb->query( "DELETE FROM `$this->table` WHERE is_404 = 1 ORDER BY gone_id LIMIT $n" );
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$wpdb->query(
+				$wpdb->prepare(
+					"DELETE FROM {$this->table} WHERE is_404 = %d ORDER BY gone_id LIMIT %d",
+					1,
+					$n
+				)
+			);
 		}
 	}
 
@@ -192,7 +230,14 @@ class WP_410 {
 	 */
 	private function convert_404( $key ) {
 		global $wpdb;
-		return $wpdb->query( $wpdb->prepare( "UPDATE `$this->table` SET is_404 = 0 WHERE `gone_key` = %s LIMIT 1", $key ) );
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		return $wpdb->query(
+			$wpdb->prepare(
+				"UPDATE {$this->table} SET is_404 = %d WHERE gone_key = %s LIMIT 1",
+				0,
+				$key
+			)
+		);
 	}
 
 	/**
@@ -203,7 +248,13 @@ class WP_410 {
 	 */
 	private function remove_link( $key ) {
 		global $wpdb;
-		return $wpdb->query( $wpdb->prepare( "DELETE FROM $this->table WHERE gone_key = %s", array( $key ) ) );
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		return $wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$this->table} WHERE gone_key = %s",
+				$key
+			)
+		);
 	}
 
 	/**
@@ -218,8 +269,8 @@ class WP_410 {
 	 *
 	 * @return void
 	 */
-	function upgrade_check() {
-		$options_version = get_option( 'wp_410_options_version', 0 );
+	public function upgrade_check() {
+		$options_version = (int) get_option( 'wp_410_options_version', 0 );
 
 		if ( self::DB_VERSION === $options_version ) {
 			return;
@@ -260,7 +311,7 @@ class WP_410 {
 	 *
 	 * @return void
 	 */
-	function settings_menu() {
+	public function settings_menu() {
 		add_submenu_page( 'plugins.php', '410 for WordPress', '410 for WordPress', 'manage_options', 'wp_410_settings', array( $this, 'settings_page' ) );
 	}
 
@@ -272,7 +323,7 @@ class WP_410 {
 	 *
 	 * @return void
 	 */
-	function settings_page() {
+	public function settings_page() {
 		$links        = $this->get_links();
 		$logged_404s  = $this->get_404s();
 		$links_to_add = array();
@@ -459,8 +510,8 @@ class WP_410 {
 	 */
 	private function is_valid_url( $link ) {
 		// Determine whether WP will handle a request for this URL.
-		$wp_path   = parse_url( home_url( '/' ), PHP_URL_PATH );
-		$link_path = parse_url( $link, PHP_URL_PATH );
+		$wp_path   = wp_parse_url( home_url( '/' ), PHP_URL_PATH );
+		$link_path = wp_parse_url( $link, PHP_URL_PATH );
 
 		if ( 0 !== strpos( $link_path, $wp_path ) ) {
 			return false;
@@ -468,7 +519,7 @@ class WP_410 {
 
 		if ( ! $this->permalinks ) {
 			$req = preg_replace( '|' . preg_quote( $wp_path, '|' ) . '/?|', '', $link_path );
-			if ( strlen( $req ) && '?' != $req[0] ) {  // this is a pretty permalink, but pretty permalinks are disabled.
+			if ( strlen( $req ) && '?' !== $req[0] ) {  // this is a pretty permalink, but pretty permalinks are disabled.
 				return false;
 			}
 		}
@@ -482,10 +533,10 @@ class WP_410 {
 	 * @param int $id Post ID.
 	 * @return void
 	 */
-	function note_inserted_post( $id ) {
+	public function note_inserted_post( $id ) {
 		$post = get_post( $id );
 
-		if ( 'revision' == $post->post_type || 'draft' == $post->post_status ) {
+		if ( 'revision' === $post->post_type || 'draft' === $post->post_status ) {
 			return;
 		}
 
@@ -511,7 +562,7 @@ class WP_410 {
 	 *
 	 * @return void
 	 */
-	function check_for_410() {
+	public function check_for_410() {
 		// Don't mess if WordPress has found something to display.
 		if ( ! is_404() ) {
 			return;
@@ -522,10 +573,17 @@ class WP_410 {
 		$req   = rawurldecode( $req );
 
 		foreach ( $links as $link ) {
-			if ( @preg_match( $link->gone_regex, $req ) ) {
-				define( 'DONOTCACHEPAGE', true );       // WP Super Cache and W3 Total Cache recognise this.
+			$match_result = preg_match( $link->gone_regex, $req );
+
+			if ( false === $match_result ) {
+				// Invalid regex – skip this pattern rather than breaking the request.
+				continue;
+			}
+
+			if ( 1 === $match_result ) {
+				define( 'DONOTCACHEPAGE', true );
 				status_header( 410 );
-				do_action( 'wp_410_response' ); // you can use this to customise the response message.
+				do_action( 'wp_410_response' );
 
 				if ( ! locate_template( '410.php', true ) ) {
 					echo 'Sorry, the page you requested has been permanently removed.';
