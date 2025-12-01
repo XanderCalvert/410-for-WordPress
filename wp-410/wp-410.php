@@ -27,9 +27,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class WP_410 {
 
-    /**
-     * Current database schema version.
-     *
+	/**
+	 * Current database schema version.
+	 *
 	 * @var int
 	 */
 	const DB_VERSION = 5;
@@ -71,7 +71,7 @@ class WP_410 {
 		add_action( 'wp_insert_post', array( $this, 'note_inserted_post' ) );
 	}
 
-    /**
+	/**
 	 * Maximum number of 404 entries to retain.
 	 *
 	 * @return int
@@ -91,7 +91,7 @@ class WP_410 {
 		dbDelta( $sql );
 	}
 
-    /**
+	/**
 	 * Maximum number of 404 entries to retain.
 	 *
 	 * @return int
@@ -101,7 +101,7 @@ class WP_410 {
 		return $wpdb->get_results( "SELECT gone_key, gone_regex FROM $this->table WHERE is_404 = 0", OBJECT_K );    // indexed by gone_key
 	}
 
-    /**
+	/**
 	 * Maximum number of 404 entries to retain.
 	 *
 	 * @return int
@@ -110,7 +110,7 @@ class WP_410 {
 		return get_option( 'wp_410_max_404s', 50 );
 	}
 
-    /**
+	/**
 	 * Fetch recent logged 404 entries, trimmed to the configured limit.
 	 *
 	 * @return object[] Array of 404 link rows keyed by gone_key.
@@ -204,24 +204,24 @@ class WP_410 {
 		return $wpdb->query( $wpdb->prepare( "DELETE FROM $this->table WHERE gone_key = %s", array( $key ) ) );
 	}
 
-    /**
-     * Checks whether the plugin's stored database/version options need upgrading,
-     * and performs required migrations when moving between older plugin versions.
-     *
-     * This handles:
-     * - Installing the custom 410 table when upgrading from versions before DB version 5.
-     * - Migrating legacy stored links (options-based) into the database when upgrading from
-     *   versions prior to DB version 3.
-     * - Removing deprecated options once migration is complete.
-     *
-     * @return void
-     */
+	/**
+	 * Checks whether the plugin's stored database/version options need upgrading,
+	 * and performs required migrations when moving between older plugin versions.
+	 *
+	 * This handles:
+	 * - Installing the custom 410 table when upgrading from versions before DB version 5.
+	 * - Migrating legacy stored links (options-based) into the database when upgrading from
+	 *   versions prior to DB version 3.
+	 * - Removing deprecated options once migration is complete.
+	 *
+	 * @return void
+	 */
 	function upgrade_check() {
 		$options_version = get_option( 'wp_410_options_version', 0 );
 
 		if ( self::DB_VERSION === $options_version ) {
-            return;
-        }
+			return;
+		}
 
 		// last db change was in version 5
 		if ( $options_version < 5 ) {
@@ -250,14 +250,14 @@ class WP_410 {
 		update_option( 'wp_410_options_version', self::DB_VERSION );
 	}
 
-    /**
-     * Registers the 410 plugin settings page within the WordPress admin Plugins menu.
-     *
-     * Adds a submenu item under "Plugins" that links to the management screen for
-     * obsolete URLs, recent 404s, and other plugin configuration options.
-     *
-     * @return void
-     */
+	/**
+	 * Registers the 410 plugin settings page within the WordPress admin Plugins menu.
+	 *
+	 * Adds a submenu item under "Plugins" that links to the management screen for
+	 * obsolete URLs, recent 404s, and other plugin configuration options.
+	 *
+	 * @return void
+	 */
 	function settings_menu() {
 		add_submenu_page( 'plugins.php', '410 for WordPress', '410 for WordPress', 'manage_options', 'wp_410_settings', array( $this, 'settings_page' ) );
 	}
