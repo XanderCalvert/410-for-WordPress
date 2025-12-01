@@ -1,28 +1,61 @@
 <?php
-/*
-Plugin Name: 410 for WordPress
-Plugin URI: https://wordpress.org/plugins/wp-410/
-Description: Sends HTTP 410 (Gone) responses to requests for pages that no longer exist on your blog.
-Version: 0.9.0
-Author: Samir Shah
-Author URI: http://rayofsolaris.net/
-Maintainer: Matt Calvert
-Maintainer URI: https://calvert.media
-License: GPLv2 or later
-License URI: https://www.gnu.org/licenses/gpl-2.0.html
-Update URI: https://wordpress.org/plugins/wp-410/
-*/
+/**
+ * Plugin Name:       410 for WordPress
+ * Plugin URI:        https://wordpress.org/plugins/wp-410/
+ * Description:       Sends HTTP 410 (Gone) responses to requests for pages that no longer exist on your blog.
+ * Version:           0.9.0
+ * Author:            Samir Shah
+ * Author URI:        http://rayofsolaris.net/
+ * Maintainer:        Matt Calvert
+ * Maintainer URI:    https://calvert.media
+ * License:           GPLv2 or later
+ * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
+ * Update URI:        https://wordpress.org/plugins/wp-410/
+ *
+ * @package           WP_410
+ */
+
+
+// todo change file name to class-wp-410.php - version 1.0.0.
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Main plugin class for 410 for WordPress.
+ */
 class WP_410 {
-	const db_version = 5;
+
+    /**
+     * Current database schema version.
+     *
+	 * @var int
+	 */
+	const DB_VERSION = 5;
+
+	/**
+	 * Whether pretty permalinks are enabled for the current site.
+	 *
+	 * @var bool
+	 */
 	private $permalinks;
+
+	/**
+	 * Name of the plugin's database table.
+	 *
+	 * @var string
+	 */
 	private $table;
 
-	function __construct() {
+	/**
+	 * Set initial state and register admin/front-end hooks.
+	 *
+	 * Determines permalink support, stores the plugin table name, and hooks
+	 * upgrade checks plus admin or template redirects depending on context.
+	 * Always listens for new posts to reconcile obsolete link entries.
+	 */
+	public function __construct() {
 		$this->permalinks = (bool) get_option( 'permalink_structure' );
 		$this->table      = $GLOBALS['wpdb']->prefix . '410_links';
 
@@ -34,10 +67,15 @@ class WP_410 {
 			add_action( 'template_redirect', array( $this, 'check_for_410' ) );
 		}
 
-		// these could theoretically happen both with/without is_admin()
+		// these could theoretically happen both with/without is_admin().
 		add_action( 'wp_insert_post', array( $this, 'note_inserted_post' ) );
 	}
 
+    /**
+	 * Maximum number of 404 entries to retain.
+	 *
+	 * @return int
+	 */
 	private function install_table() {
 		// remember, two spaces after PRIMARY KEY otherwise WP borks
 		$sql = "CREATE TABLE $this->table (
@@ -53,27 +91,51 @@ class WP_410 {
 		dbDelta( $sql );
 	}
 
+    /**
+	 * Maximum number of 404 entries to retain.
+	 *
+	 * @return int
+	 */
 	private function get_links() {
 		global $wpdb;
 		return $wpdb->get_results( "SELECT gone_key, gone_regex FROM $this->table WHERE is_404 = 0", OBJECT_K );    // indexed by gone_key
 	}
 
+    /**
+	 * Maximum number of 404 entries to retain.
+	 *
+	 * @return int
+	 */
 	private function max_404_list_length() {
 		return get_option( 'wp_410_max_404s', 50 );
 	}
 
+    /**
+	 * Fetch recent logged 404 entries, trimmed to the configured limit.
+	 *
+	 * @return object[] Array of 404 link rows keyed by gone_key.
+	 */
 	private function get_404s() {
 		global $wpdb;
 		$this->concat_404_list();
 		return $wpdb->get_results( "SELECT gone_key, gone_regex FROM $this->table WHERE is_404 = 1 ORDER BY gone_id DESC", OBJECT_K );  // indexed by gone_key
 	}
 
+	/**
+	 * Insert a new 410 or logged 404 entry and store its regex matcher.
+	 *
+	 * Skips when 404 logging is disabled or the key already exists.
+	 *
+	 * @param string $key    Fully qualified URL (supports * wildcards).
+	 * @param bool   $is_404 Whether this entry represents a logged 404 hit.
+	 * @return int|null      Number of rows affected when duplicate is found, otherwise void.
+	 */
 	private function add_link( $key, $is_404 = false ) {
 		// just supply the link
 		global $wpdb;
 
 		// 404 logging enabled?
-		if ( $is_404 && $this->max_404_list_length() == 0 ) {
+		if ( $is_404 && 0 == $this->max_404_list_length() ) {
 			return;
 		}
 
@@ -107,6 +169,11 @@ class WP_410 {
 		}
 	}
 
+	/**
+	 * Trim the logged 404 list to the configured maximum length.
+	 *
+	 * @return void
+	 */
 	private function concat_404_list() {
 		global $wpdb;
 		$n = intval( $wpdb->get_var( "SELECT COUNT(*) FROM `$this->table` WHERE `is_404` = 1" ) - $this->max_404_list_length() );
@@ -115,22 +182,46 @@ class WP_410 {
 		}
 	}
 
+	/**
+	 * Promote a logged 404 entry to a 410 entry.
+	 *
+	 * @param string $key URL key to convert.
+	 * @return int|false  Rows updated or false on error.
+	 */
 	private function convert_404( $key ) {
 		global $wpdb;
 		return $wpdb->query( $wpdb->prepare( "UPDATE `$this->table` SET is_404 = 0 WHERE `gone_key` = %s LIMIT 1", $key ) );
 	}
 
+	/**
+	 * Delete a stored link (410 or 404) by its key.
+	 *
+	 * @param string $key URL key to remove.
+	 * @return int|false  Rows deleted or false on error.
+	 */
 	private function remove_link( $key ) {
 		global $wpdb;
 		return $wpdb->query( $wpdb->prepare( "DELETE FROM $this->table WHERE gone_key = %s", array( $key ) ) );
 	}
 
+    /**
+     * Checks whether the plugin's stored database/version options need upgrading,
+     * and performs required migrations when moving between older plugin versions.
+     *
+     * This handles:
+     * - Installing the custom 410 table when upgrading from versions before DB version 5.
+     * - Migrating legacy stored links (options-based) into the database when upgrading from
+     *   versions prior to DB version 3.
+     * - Removing deprecated options once migration is complete.
+     *
+     * @return void
+     */
 	function upgrade_check() {
 		$options_version = get_option( 'wp_410_options_version', 0 );
 
-		if ( $options_version == self::db_version ) {  // nothing to do
-			return;
-		}
+		if ( self::DB_VERSION === $options_version ) {
+            return;
+        }
 
 		// last db change was in version 5
 		if ( $options_version < 5 ) {
@@ -145,7 +236,7 @@ class WP_410 {
 				$new_links = array_map( 'rawurldecode', $old_links );
 			} elseif ( 1 == $options_version ) { // links were stored as array( link => regex ), We only need the link
 				$new_links = array_map( 'rawurldecode', array_keys( $old_links ) );
-			} else { // moved to using the database in db_version 3
+			} else { // moved to using the database in DB_VERSION 3
 				$new_links = array_keys( $old_links );
 			}
 
@@ -156,13 +247,29 @@ class WP_410 {
 			delete_option( 'wp_410_links_list' );   // remove old option
 		}
 
-		update_option( 'wp_410_options_version', self::db_version );
+		update_option( 'wp_410_options_version', self::DB_VERSION );
 	}
 
+    /**
+     * Registers the 410 plugin settings page within the WordPress admin Plugins menu.
+     *
+     * Adds a submenu item under "Plugins" that links to the management screen for
+     * obsolete URLs, recent 404s, and other plugin configuration options.
+     *
+     * @return void
+     */
 	function settings_menu() {
 		add_submenu_page( 'plugins.php', '410 for WordPress', '410 for WordPress', 'manage_options', 'wp_410_settings', array( $this, 'settings_page' ) );
 	}
 
+	/**
+	 * Render and handle the plugin settings page.
+	 *
+	 * Processes add/delete/link-length form submissions, refreshes link lists,
+	 * and outputs the admin UI for managing 410 URLs and logged 404s.
+	 *
+	 * @return void
+	 */
 	function settings_page() {
 		$links        = $this->get_links();
 		$logged_404s  = $this->get_404s();
@@ -315,7 +422,7 @@ class WP_410 {
 	<p class="submit"><input class="button button-primary" type="submit" name="add-to-410-list" value="Add entries to 410 list" /></p>
 	</form>
 
-	<h3>410 reponse message</h3>
+	<h3>410 response message</h3>
 	<p>By default, the plugin issues the following plain-text message as part of the 410 response: <code>Sorry, the page you requested has been permanently removed.</code></p>
 		<?php
 		if ( locate_template( '410.php' ) ) {
@@ -339,18 +446,27 @@ class WP_410 {
 		<?php
 	}
 
+	/**
+	 * Determine if a URL can be handled by the current WordPress install.
+	 *
+	 * Checks path prefix and, when permalinks are off, ensures the URL is not
+	 * a pretty permalink format.
+	 *
+	 * @param string $link Fully qualified URL to validate.
+	 * @return bool
+	 */
 	private function is_valid_url( $link ) {
 		// Determine whether WP will handle a request for this URL
 		$wp_path   = parse_url( home_url( '/' ), PHP_URL_PATH );
 		$link_path = parse_url( $link, PHP_URL_PATH );
 
-		if ( strpos( $link_path, $wp_path ) !== 0 ) {
+		if ( 0 !== strpos( $link_path, $wp_path ) ) {
 			return false;
 		}
 
 		if ( ! $this->permalinks ) {
 			$req = preg_replace( '|' . preg_quote( $wp_path, '|' ) . '/?|', '', $link_path );
-			if ( strlen( $req ) && $req[0] != '?' ) {  // this is a pretty permalink, but pretty permalinks are disabled
+			if ( strlen( $req ) && '?' != $req[0] ) {  // this is a pretty permalink, but pretty permalinks are disabled
 				return false;
 			}
 		}
@@ -358,6 +474,12 @@ class WP_410 {
 		return true;
 	}
 
+	/**
+	 * Remove matching obsolete links when a post is created or updated.
+	 *
+	 * @param int $id Post ID.
+	 * @return void
+	 */
 	function note_inserted_post( $id ) {
 		$post = get_post( $id );
 
@@ -380,6 +502,13 @@ class WP_410 {
 		}
 	}
 
+	/**
+	 * Intercept 404 requests and emit a 410 response for known obsolete URLs.
+	 *
+	 * Logs unknown 404s when logging is enabled.
+	 *
+	 * @return void
+	 */
 	function check_for_410() {
 		// Don't mess if WordPress has found something to display
 		if ( ! is_404() ) {
@@ -409,4 +538,5 @@ class WP_410 {
 	}
 }
 
+// Bootstrap the plugin.
 new WP_410();
