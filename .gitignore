@@ -1,0 +1,65 @@
+# ─────────────────────────────────────────────
+#  Core ignores
+# ─────────────────────────────────────────────
+
+# Composer
+/vendor/
+/composer.lock
+
+# Node (just in case future tooling)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build output
+/dist/
+*.zip
+
+# OS junk
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon?
+desktop.ini
+
+# Editor / IDE folders
+.vscode/
+.idea/
+*.iml
+
+# Logs
+*.log
+
+# PHPUnit (if added later)
+.phpunit.result.cache
+
+# VS Code PHP Tools cache
+phpunit.xml
+phpunit.xml.dist
+
+# Cached PHPCS data
+phpcs.xml
+phpcs.xml.cache
+
+# GitHub Actions cache
+.github/*-cache/
+
+# ─────────────────────────────────────────────
+# WordPress-specific optional ignores
+# ─────────────────────────────────────────────
+
+# If you ever clone a whole WP site for testing, prevent committing it
+wp-content/
+!wp-410/          # But keep your plugin folder
+
+# Ignore local environment files
+.env
+.env.*
+local-config.php
+
+# WP_DEBUG logs
+debug.log
+
+# ─────────────────────────────────────────────
+# End
+# ─────────────────────────────────────────────

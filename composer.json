@@ -1,0 +1,19 @@
+{
+    "name": "xandercalvert/410-for-wordpress",
+    "description": "410 for WordPress - maintained fork.",
+    "type": "project",
+    "require-dev": {
+        "squizlabs/php_codesniffer": "^3.9",
+        "wp-coding-standards/wpcs": "^3.0",
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.0"
+    },
+    "scripts": {
+        "lint": "phpcs --standard=phpcs.xml.dist wp-410",
+        "lint-fix": "phpcbf --standard=phpcs.xml.dist wp-410"
+    },   
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    }
+}
