@@ -2,18 +2,30 @@
 <ruleset name="410 for WordPress">
     <description>Code style rules for the 410 for WordPress plugin.</description>
 
-    <!-- Tell PHPCS what to scan -->
+    <!-- What to scan -->
     <file>wp-410</file>
 
-    <!-- Ignore noise if it ever appears -->
+    <!-- Ignore third-party / noise -->
     <exclude-pattern>*/vendor/*</exclude-pattern>
     <exclude-pattern>*/.github/*</exclude-pattern>
     <exclude-pattern>*/node_modules/*</exclude-pattern>
 
     <!-- Base WordPress rules -->
-    <rule ref="WordPress"/>
-    <rule ref="WordPress-Extra"/>
+    <rule ref="WordPress-Core">
+        <exclude name="Squiz.Classes.ClassFileName"/>
+        <exclude name="WordPress.Files.FileName"/>
+    </rule>
 
-    <!-- PHP version targeting (optional, tweak as needed) -->
+    <rule ref="WordPress-Extra">
+        <exclude name="Squiz.Classes.ClassFileName"/>
+        <exclude name="WordPress.Files.FileName"/>
+    </rule>
+
+    <rule ref="WordPress-Docs">
+        <exclude name="Squiz.Classes.ClassFileName"/>
+        <exclude name="WordPress.Files.FileName"/>
+    </rule>
+
+    <!-- PHP version targeting -->
     <config name="testVersion" value="7.4-8.3"/>
 </ruleset>
