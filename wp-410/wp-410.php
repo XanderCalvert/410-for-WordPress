@@ -3,7 +3,7 @@
  * Plugin Name:       410 for WordPress
  * Plugin URI:        https://wordpress.org/plugins/wp-410/
  * Description:       Sends HTTP 410 (Gone) responses to requests for pages that no longer exist on your blog.
- * Version:           0.9.0
+ * Version:           0.9.1
  * Author:            Samir Shah
  * Author URI:        http://rayofsolaris.net/
  * Maintainer:        Matt Calvert
