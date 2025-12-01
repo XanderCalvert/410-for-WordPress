@@ -1,19 +1,24 @@
 === 410 for WordPress ===
-Contributors: solarissmoke
+Contributors: solarissmoke, XanderCalvert
 Tags: error, gone, robots
 Requires at least: 3.7
-Tested up to: 4.9
-Stable tag: trunk
+Tested up to: 6.6
+Stable tag: 0.9.0
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-A plugin that sends HTTP 410 (Gone) responses to requests for articles that no longer exist on your blog.
+A plugin that sends HTTP 410 (Gone) responses to requests for articles that no longer exist on your blog.  
+Originally created by Samir Shah. Now maintained by Matt Calvert.
 
 == Description ==
 
-This plugin will issue a HTTP `410` response to requests for articles that no longer exist on your blog. When you delete a post or page, it records the URL for that page and issues a `410` response when that URL is requested. You can also manually manage the list of obsolete URLs.
+This plugin issues an HTTP `410` response for URLs corresponding to content that has been permanently removed from your site. When a post or page is deleted, the plugin logs the old URL and returns a `410` response when that URL is requested. You can also manually manage the list of obsolete URLs.
 
-The [HTTP Specification](http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.11) defines the `410` response header for use when a resource has been permanently removed. It informs robots visiting your site that the requested content has gone, and that they should stop trying to access it.
+The [HTTP Specification](http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.11) defines the `410 Gone` response for resources that have been permanently removed. It informs search engines and crawlers that the content will not return, improving crawl efficiency and SEO clarity.
 
-If you come across any bugs or have suggestions, please use the plugin support forum. I can't fix it if I don't know it's broken! Please check the [FAQ](http://wordpress.org/extend/plugins/wp-410/faq/) for common issues.
+This plugin was originally created by Samir Shah (@solarissmoke).  
+It is now actively maintained by Matt Calvert as a personal project, informed by previous professional experience with similar 410-handling logic.  
+No proprietary or employer-owned code has been used.
 
 == Frequently Asked Questions ==
 
@@ -33,6 +38,12 @@ The plugin has been tested with the following caching plugins, and should work e
 I have not tested it with other caching plugins, and there is a high chance that it **will not work** with many of them. Most of them will cache the response as if it is a 404 (page not found) response, and issue a 404 response header instead of a 410 response header.
 
 == Changelog ==
+
+= 0.9.0 =
+* Maintenance release by new maintainer (Matt Calvert).
+* Modernised plugin header and readme; added Tested up to 6.6.
+* General code clean-up and internal preparation for future improvements.
+* No behavioural changes in this release.
 
 = 0.8.6 =
 * Don't rely on WordPress to correctly report whether the site is using SSL.

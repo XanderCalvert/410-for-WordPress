@@ -3,10 +3,14 @@
 Plugin Name: 410 for WordPress
 Plugin URI: https://wordpress.org/plugins/wp-410/
 Description: Sends HTTP 410 (Gone) responses to requests for pages that no longer exist on your blog.
-Version: 0.8.7
+Version: 0.9.0
 Author: Samir Shah
 Author URI: http://rayofsolaris.net/
-License: GPL2
+Maintainer: Matt Calvert
+Maintainer URI: https://calvert.media
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+Update URI: https://wordpress.org/plugins/wp-410/
 */
 
 if( ! defined( 'ABSPATH' ) )
