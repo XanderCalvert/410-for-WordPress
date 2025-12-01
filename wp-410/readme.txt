@@ -3,7 +3,7 @@ Contributors: solarissmoke, XanderCalvert
 Tags: error, gone, robots
 Requires at least: 3.7
 Tested up to: 6.6
-Stable tag: 0.9.2
+Stable tag: 0.9.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -39,8 +39,11 @@ I have not tested it with other caching plugins, and there is a high chance that
 
 == Changelog ==
 
+= 0.9.3 =
+* Added GitHub Actions workflow to automatically build a distributable plugin ZIP on tagged releases.
+
 = 0.9.2 
-* Fixed bug where you couldn't select url in 404 menu
+* Fixed bug where you couldn't select url in 404 menu.
 
 = 0.9.1 =
 * Significant internal refactor to meet modern WordPress Coding Standards (PHPCS).
