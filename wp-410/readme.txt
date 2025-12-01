@@ -3,7 +3,7 @@ Contributors: solarissmoke, XanderCalvert
 Tags: error, gone, robots
 Requires at least: 3.7
 Tested up to: 6.6
-Stable tag: 0.9.1
+Stable tag: 0.9.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -38,6 +38,9 @@ The plugin has been tested with the following caching plugins, and should work e
 I have not tested it with other caching plugins, and there is a high chance that it **will not work** with many of them. Most of them will cache the response as if it is a 404 (page not found) response, and issue a 404 response header instead of a 410 response header.
 
 == Changelog ==
+
+= 0.9.2 
+* Fixed bug where you couldn't select url in 404 menu
 
 = 0.9.1 =
 * Significant internal refactor to meet modern WordPress Coding Standards (PHPCS).
