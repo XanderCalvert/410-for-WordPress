@@ -100,13 +100,14 @@ class WP_410 {
 	private function get_links() {
 		global $wpdb;
 
-        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQL.NotPrepared
-		$sql = $wpdb->prepare(
-			"SELECT gone_key, gone_regex FROM {$this->table} WHERE is_404 = %d",
-			0
+		return $wpdb->get_results(
+			$wpdb->prepare(
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT gone_key, gone_regex FROM {$this->table} WHERE is_404 = %d",
+				0
+			),
+			OBJECT_K
 		);
-
-		return $wpdb->get_results( $sql, OBJECT_K ); // Indexed by gone_key.
 	}
 
 	/**
@@ -128,13 +129,14 @@ class WP_410 {
 
 		$this->concat_404_list();
 
-        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQL.NotPrepared
-		$sql = $wpdb->prepare(
-			"SELECT gone_key, gone_regex FROM {$this->table} WHERE is_404 = %d ORDER BY gone_id DESC",
-			1
+		return $wpdb->get_results(
+			$wpdb->prepare(
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT gone_key, gone_regex FROM {$this->table} WHERE is_404 = %d ORDER BY gone_id DESC",
+				1
+			),
+			OBJECT_K
 		);
-
-		return $wpdb->get_results( $sql, OBJECT_K ); // Indexed by gone_key.
 	}
 
 	/**
@@ -166,9 +168,9 @@ class WP_410 {
 		$regex = '|^' . implode( '', $parts ) . '$|i';
 
 		// avoid duplicates - messy but MySQL doesn't allow url-length unique keys.
-        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$count = (int) $wpdb->get_var(
 			$wpdb->prepare(
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				"SELECT COUNT(*) FROM {$this->table} WHERE gone_key = %s",
 				$key
 			)
@@ -200,9 +202,10 @@ class WP_410 {
 	 */
 	private function concat_404_list() {
 		global $wpdb;
-        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQL.NotPrepared
+
 		$total_404s = (int) $wpdb->get_var(
 			$wpdb->prepare(
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				"SELECT COUNT(*) FROM {$this->table} WHERE is_404 = %d",
 				1
 			)
@@ -211,9 +214,9 @@ class WP_410 {
 		$n = $total_404s - $this->max_404_list_length();
 
 		if ( $n > 0 ) {
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$wpdb->query(
 				$wpdb->prepare(
+                    // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 					"DELETE FROM {$this->table} WHERE is_404 = %d ORDER BY gone_id LIMIT %d",
 					1,
 					$n
@@ -230,9 +233,10 @@ class WP_410 {
 	 */
 	private function convert_404( $key ) {
 		global $wpdb;
-        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
 		return $wpdb->query(
 			$wpdb->prepare(
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				"UPDATE {$this->table} SET is_404 = %d WHERE gone_key = %s LIMIT 1",
 				0,
 				$key
@@ -248,9 +252,10 @@ class WP_410 {
 	 */
 	private function remove_link( $key ) {
 		global $wpdb;
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
 		return $wpdb->query(
 			$wpdb->prepare(
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				"DELETE FROM {$this->table} WHERE gone_key = %s",
 				$key
 			)
@@ -285,9 +290,9 @@ class WP_410 {
 			$old_links = get_option( 'wp_410_links_list', array() );
 			$new_links = array();    // just a simple array of links.
 
-			if ( 0 == $options_version ) { // links were stored just as links.
+			if ( 0 === $options_version ) { // links were stored just as links.
 				$new_links = array_map( 'rawurldecode', $old_links );
-			} elseif ( 1 == $options_version ) { // links were stored as array( link => regex ), We only need the link.
+			} elseif ( 1 === $options_version ) { // links were stored as array( link => regex ). We only need the link.
 				$new_links = array_map( 'rawurldecode', array_keys( $old_links ) );
 			} else { // moved to using the database in DB_VERSION 3.
 				$new_links = array_keys( $old_links );
@@ -338,9 +343,8 @@ class WP_410 {
 					unset( $links[ $key ] );
 				}
 			}
-		}
-		// Entries to add, either manually or from 404 list.
-		elseif ( isset( $_POST['add-to-410-list'] ) ) {
+		} elseif ( isset( $_POST['add-to-410-list'] ) ) {
+			// Entries to add, either manually or from 404 list.
 			check_admin_referer( 'wp-410-settings' );
 			$failed_to_add = array();
 			if ( ! empty( $_POST['links_to_add'] ) ) {
@@ -349,7 +353,7 @@ class WP_410 {
 					if ( $this->is_valid_url( $link ) ) {
 						$this->add_link( $link );
 					} else {
-						$failed_to_add[] = '<code>' . htmlspecialchars( $link ) . '</code>';
+						$failed_to_add[] = '<code>' . esc_html( $link ) . '</code>';
 					}
 				}
 			}
@@ -366,7 +370,11 @@ class WP_410 {
 			$logged_404s = $this->get_404s();
 
 			if ( $failed_to_add ) {
-				echo '<div class="error"><p>The following entries could not be recognised as URLs that your WordPress site handles, and were not added to the list. This can be because the domain name and path does not match that of your WordPress site, or because pretty permalinks are disabled.</p><p>- ' . implode( '<br> - ', $failed_to_add ) . '</p></div>';
+				$message  = '<div class="error"><p>The following entries could not be recognised as URLs that your WordPress site handles, and were not added to the list. ';
+				$message .= 'This can be because the domain name and path does not match that of your WordPress site, or because pretty permalinks are disabled.</p>';
+				$message .= '<p>- ' . implode( '<br> - ', $failed_to_add ) . '</p></div>';
+
+				echo wp_kses_post( $message );
 			}
 		} elseif ( isset( $_POST['set-404-list-length'] ) ) {
 			check_admin_referer( 'wp-410-settings' );
@@ -419,10 +427,15 @@ class WP_410 {
 				}
 
 				$k_attr = esc_attr( $k );
-				$k      = htmlspecialchars( $k );
-				$class  = $valid ? '' : 'class="invalid"';
+				$k_text = esc_html( $k );
+				$class  = $valid ? '' : ' class="invalid"';
 
-				echo "<tr $class><td><input type='checkbox' name='old_links_to_remove[]' id='wp-410-$k_attr' value='$k_attr' /></td><td><label for='wp-410-$k_attr'><code>$k</code></label></td</tr>";
+				$row_html  = '<tr' . $class . '>';
+				$row_html .= '<td><input type="checkbox" name="old_links_to_remove[]" id="wp-410-' . $k_attr . '" value="' . $k_attr . '" /></td>';
+				$row_html .= '<td><label for="wp-410-' . $k_attr . '"><code>' . $k_text . '</code></label></td>';
+				$row_html .= '</tr>';
+
+				echo wp_kses_post( $row_html );
 			}
 			echo '</tbody></table></div>';
 
@@ -439,7 +452,7 @@ class WP_410 {
 	<h3>Recent 404 errors</h3>
 	<p>Recent 404 (Page Not Found) errors on your site are shown here, so that you can easily add them to the list above.</p>
 	<form action="" method="post">
-	<p><label>Maximum number of 404 errors to keep: <input type="number" size="3" name="max_404_list_length" value="<?php echo $this->max_404_list_length(); ?>" /></label> <input class="button button-secondary" type="submit" name="set-404-list-length" value="Save" /> (setting this to zero will disable logging).</p>
+	<p><label>Maximum number of 404 errors to keep: <input type="number" size="3" name="max_404_list_length" value="<?php echo esc_attr( $this->max_404_list_length() ); ?>" /></label> <input class="button button-secondary" type="submit" name="set-404-list-length" value="Save" /> (setting this to zero will disable logging).</p>
 		<?php wp_nonce_field( 'wp-410-settings' ); ?>
 	</form>
 	<form action="" method="post">
@@ -456,8 +469,14 @@ class WP_410 {
 
 			foreach ( array_keys( $logged_404s ) as $k ) {
 				$k_attr = esc_attr( $k );
-				$k      = htmlspecialchars( $k );
-				echo "<tr><td><input type='checkbox' name='add_404s[]' id='wp-404-$k_attr' value='$k_attr' /></td><td><label for='wp-404-$k_attr'><code>$k</code></label></td></tr>";
+				$k_text = esc_html( $k );
+
+				$row_html  = '<tr>';
+				$row_html .= '<td><input type="checkbox" name="add_404s[]" id="wp-404-' . $k_attr . '" value="' . $k_attr . '" /></td>';
+				$row_html .= '<td><label for="wp-404-' . $k_attr . '"><code>' . $k_text . '</code></label></td>';
+				$row_html .= '</tr>';
+
+				echo wp_kses_post( $row_html );
 			}
 			echo '</tbody></table></div>';
 			wp_nonce_field( 'wp-410-settings' );
@@ -485,17 +504,20 @@ class WP_410 {
 		}
 		?>
 	</div>
+    <?php // phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 	<script>
 	jQuery(function($){
-		$("#wp-gone-captcha-settings input").change( function(){
-			$("#message").slideUp('slow');
+		$("#wp-gone-captcha-settings input").change(function(){
+			$("#message").slideUp("slow");
 		});
 		$("#select-all-410, #select-all-404").change(function() {
-			var el = $(this);
+			let el = $(this);
 			el.closest("table").find("tbody input").prop("checked", el.is(":checked"));
 		});
 	});
 	</script>
+    <?php // phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+
 		<?php
 	}
 
