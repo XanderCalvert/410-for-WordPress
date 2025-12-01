@@ -16,7 +16,7 @@
  */
 
 
-// todo change file name to class-wp-410.php - version 1.0.0.
+		// todo change file name to class-wp-410.php - version 1.0.0.
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -72,12 +72,14 @@ class WP_410 {
 	}
 
 	/**
-	 * Maximum number of 404 entries to retain.
+	 * Create the plugin's custom database table if it does not exist.
 	 *
-	 * @return int
+	 * Uses dbDelta to ensure the latest schema (including indexes) is present.
+	 *
+	 * @return void
 	 */
 	private function install_table() {
-		// remember, two spaces after PRIMARY KEY otherwise WP borks
+		// remember, two spaces after PRIMARY KEY otherwise WP borks.
 		$sql = "CREATE TABLE $this->table (
 			gone_id MEDIUMINT unsigned NOT NULL AUTO_INCREMENT,
 			gone_key VARCHAR(512) NOT NULL,
@@ -92,13 +94,13 @@ class WP_410 {
 	}
 
 	/**
-	 * Maximum number of 404 entries to retain.
+	 * Fetch all registered 410 links.
 	 *
-	 * @return int
+	 * @return object[] Array of link rows keyed by gone_key.
 	 */
 	private function get_links() {
 		global $wpdb;
-		return $wpdb->get_results( "SELECT gone_key, gone_regex FROM $this->table WHERE is_404 = 0", OBJECT_K );    // indexed by gone_key
+		return $wpdb->get_results( "SELECT gone_key, gone_regex FROM $this->table WHERE is_404 = 0", OBJECT_K );    // indexed by gone_key.
 	}
 
 	/**
@@ -118,7 +120,7 @@ class WP_410 {
 	private function get_404s() {
 		global $wpdb;
 		$this->concat_404_list();
-		return $wpdb->get_results( "SELECT gone_key, gone_regex FROM $this->table WHERE is_404 = 1 ORDER BY gone_id DESC", OBJECT_K );  // indexed by gone_key
+		return $wpdb->get_results( "SELECT gone_key, gone_regex FROM $this->table WHERE is_404 = 1 ORDER BY gone_id DESC", OBJECT_K );  // indexed by gone_key.
 	}
 
 	/**
@@ -131,7 +133,7 @@ class WP_410 {
 	 * @return int|null      Number of rows affected when duplicate is found, otherwise void.
 	 */
 	private function add_link( $key, $is_404 = false ) {
-		// just supply the link
+		// just supply the link.
 		global $wpdb;
 
 		// 404 logging enabled?
@@ -139,7 +141,7 @@ class WP_410 {
 			return;
 		}
 
-		// build regex
+		// build regex.
 		$parts = preg_split( '/(\*)/', $key, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY );
 		foreach ( $parts as &$part ) {
 			if ( '*' != $part ) {
@@ -149,7 +151,7 @@ class WP_410 {
 		$parts = str_replace( '*', '.*', $parts );
 		$regex = '|^' . implode( '', $parts ) . '$|i';
 
-		// avoid duplicates - messy but MySQL doesn't allow url-length unique keys
+		// avoid duplicates - messy but MySQL doesn't allow url-length unique keys.
 		if ( $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM `$this->table` WHERE `gone_key` = %s", $key ) ) ) {
 			return 0;
 		}
@@ -163,7 +165,7 @@ class WP_410 {
 			)
 		);
 
-		// Don't let 404 list grow forever
+		// Don't let 404 list grow forever.
 		if ( $is_404 ) {
 			$this->concat_404_list();
 		}
@@ -223,20 +225,20 @@ class WP_410 {
 			return;
 		}
 
-		// last db change was in version 5
+		// last db change was in version 5.
 		if ( $options_version < 5 ) {
 			$this->install_table();
 		}
 
 		if ( $options_version < 3 ) {
 			$old_links = get_option( 'wp_410_links_list', array() );
-			$new_links = array();    // just a simple array of links
+			$new_links = array();    // just a simple array of links.
 
-			if ( 0 == $options_version ) { // links were stored just as links
+			if ( 0 == $options_version ) { // links were stored just as links.
 				$new_links = array_map( 'rawurldecode', $old_links );
-			} elseif ( 1 == $options_version ) { // links were stored as array( link => regex ), We only need the link
+			} elseif ( 1 == $options_version ) { // links were stored as array( link => regex ), We only need the link.
 				$new_links = array_map( 'rawurldecode', array_keys( $old_links ) );
-			} else { // moved to using the database in DB_VERSION 3
+			} else { // moved to using the database in DB_VERSION 3.
 				$new_links = array_keys( $old_links );
 			}
 
@@ -244,7 +246,7 @@ class WP_410 {
 				$this->add_link( $link );
 			}
 
-			delete_option( 'wp_410_links_list' );   // remove old option
+			delete_option( 'wp_410_links_list' );   // remove old option.
 		}
 
 		update_option( 'wp_410_options_version', self::DB_VERSION );
@@ -275,7 +277,7 @@ class WP_410 {
 		$logged_404s  = $this->get_404s();
 		$links_to_add = array();
 
-		// Entries to delete
+		// Entries to delete.
 		if ( isset( $_POST['delete-from-410-list'] ) && ! empty( $_POST['old_links_to_remove'] ) ) {
 			check_admin_referer( 'wp-410-settings' );
 			foreach ( $_POST['old_links_to_remove'] as $key ) {
@@ -286,7 +288,7 @@ class WP_410 {
 				}
 			}
 		}
-		// Entries to add, either manually or from 404 list
+		// Entries to add, either manually or from 404 list.
 		elseif ( isset( $_POST['add-to-410-list'] ) ) {
 			check_admin_referer( 'wp-410-settings' );
 			$failed_to_add = array();
@@ -308,7 +310,7 @@ class WP_410 {
 				}
 			}
 
-			// Update lists
+			// Update lists.
 			$links       = $this->get_links();
 			$logged_404s = $this->get_404s();
 
@@ -456,7 +458,7 @@ class WP_410 {
 	 * @return bool
 	 */
 	private function is_valid_url( $link ) {
-		// Determine whether WP will handle a request for this URL
+		// Determine whether WP will handle a request for this URL.
 		$wp_path   = parse_url( home_url( '/' ), PHP_URL_PATH );
 		$link_path = parse_url( $link, PHP_URL_PATH );
 
@@ -466,7 +468,7 @@ class WP_410 {
 
 		if ( ! $this->permalinks ) {
 			$req = preg_replace( '|' . preg_quote( $wp_path, '|' ) . '/?|', '', $link_path );
-			if ( strlen( $req ) && '?' != $req[0] ) {  // this is a pretty permalink, but pretty permalinks are disabled
+			if ( strlen( $req ) && '?' != $req[0] ) {  // this is a pretty permalink, but pretty permalinks are disabled.
 				return false;
 			}
 		}
@@ -487,11 +489,11 @@ class WP_410 {
 			return;
 		}
 
-		// Check our list of URLs against the new/updated post's permalink, and if they match, scratch it from our list
+		// Check our list of URLs against the new/updated post's permalink, and if they match, scratch it from our list.
 		$created_links = array();
 
 		$created_links[] = rawurldecode( get_permalink( $id ) );
-		$created_links[] = get_post_comments_feed_link( $id );  // back compat
+		$created_links[] = get_post_comments_feed_link( $id );  // back compat.
 
 		if ( $this->permalinks ) {
 			$created_links[] .= $created_links[0] . '*';
@@ -510,7 +512,7 @@ class WP_410 {
 	 * @return void
 	 */
 	function check_for_410() {
-		// Don't mess if WordPress has found something to display
+		// Don't mess if WordPress has found something to display.
 		if ( ! is_404() ) {
 			return;
 		}
@@ -521,9 +523,9 @@ class WP_410 {
 
 		foreach ( $links as $link ) {
 			if ( @preg_match( $link->gone_regex, $req ) ) {
-				define( 'DONOTCACHEPAGE', true );       // WP Super Cache and W3 Total Cache recognise this
+				define( 'DONOTCACHEPAGE', true );       // WP Super Cache and W3 Total Cache recognise this.
 				status_header( 410 );
-				do_action( 'wp_410_response' ); // you can use this to customise the response message
+				do_action( 'wp_410_response' ); // you can use this to customise the response message.
 
 				if ( ! locate_template( '410.php', true ) ) {
 					echo 'Sorry, the page you requested has been permanently removed.';
@@ -533,7 +535,7 @@ class WP_410 {
 			}
 		}
 
-		// no hit, log 404
+		// no hit, log 404.
 		$this->add_link( $req, true );
 	}
 }
