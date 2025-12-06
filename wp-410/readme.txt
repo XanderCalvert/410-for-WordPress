@@ -1,24 +1,21 @@
-=== 410 for WordPress ===
+=== HTTP 410 (Gone) responses ===
 Contributors: solarissmoke, XanderCalvert
 Tags: error, gone, robots
 Requires at least: 3.7
-Tested up to: 6.6
-Stable tag: 0.9.3
+Tested up to: 6.9
+Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-A plugin that sends HTTP 410 (Gone) responses to requests for articles that no longer exist on your blog.  
-Originally created by Samir Shah. Now maintained by Matt Calvert.
+Sends HTTP 410 (Gone) responses for deleted content, telling search engines the page is permanently removed.
 
 == Description ==
 
-This plugin issues an HTTP `410` response for URLs corresponding to content that has been permanently removed from your site. When a post or page is deleted, the plugin logs the old URL and returns a `410` response when that URL is requested. You can also manually manage the list of obsolete URLs.
+This plugin issues an HTTP `410` response for URLs corresponding to content that has been permanently removed from your site. Originally created by Samir Shah, now maintained by Matt Calvert. When a post or page is deleted, the plugin logs the old URL and returns a `410` response when that URL is requested. You can also manually manage the list of obsolete URLs.
 
 The [HTTP Specification](http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.11) defines the `410 Gone` response for resources that have been permanently removed. It informs search engines and crawlers that the content will not return, improving crawl efficiency and SEO clarity.
 
-This plugin was originally created by Samir Shah (@solarissmoke).  
-It is now actively maintained by Matt Calvert as a personal project, informed by previous professional experience with similar 410-handling logic.  
-No proprietary or employer-owned code has been used.
+This plugin is actively maintained by Matt Calvert as a personal project, informed by previous professional experience with similar 410-handling logic. No proprietary or employer-owned code has been used.
 
 == Frequently Asked Questions ==
 
@@ -26,7 +23,7 @@ No proprietary or employer-owned code has been used.
 
 The default message is a simple plain text message that reads "Sorry, the page you requested has been permanently removed." This is because many people want to minimise the bandwidth that is used by error responses.
 
-If you want to customise the message, just place a template file called `410.php` in your theme folder, and the plugin will automatically use that instead. Take a look at your theme's `404.php` file to see how the template needs to be structured. You can also hook into the `wp_410_response` action to trigger any specific events for queries resulting in a 410 response.
+If you want to customise the message, just place a template file called `410.php` in your theme folder, and the plugin will automatically use that instead. Take a look at your theme's `404.php` file to see how the template needs to be structured. You can also hook into the `mclv_410_response` action to trigger any specific events for queries resulting in a 410 response.
 
 = Will this plugin work if a caching/performance plugin is active ? =
 
@@ -38,6 +35,18 @@ The plugin has been tested with the following caching plugins, and should work e
 I have not tested it with other caching plugins, and there is a high chance that it **will not work** with many of them. Most of them will cache the response as if it is a 404 (page not found) response, and issue a 404 response header instead of a 410 response header.
 
 == Changelog ==
+
+= 1.0.0 =
+* **New:** Wildcard patterns now displayed in a separate section with visual warning for better visibility.
+* **New:** Admin settings page refactored into separate template file for cleaner code structure.
+* Properly enqueue admin CSS and JavaScript using wp_enqueue_style() and wp_enqueue_script().
+* Moved CSS and JavaScript to separate files (`css/admin.css` and `js/admin.js`).
+* Converted admin JavaScript from jQuery to vanilla JS (no jQuery dependency).
+* Improved data sanitization and validation for all user inputs including $_SERVER variables.
+* Secured uninstall.php with proper WP_UNINSTALL_PLUGIN check.
+* Renamed all function/class/element prefixes from `wp_410` to `mclv_410` for WordPress.org compliance.
+* Fixed all PHPCS coding standards errors and warnings.
+* **Deprecated:** The `wp_410_response` action hook is deprecated. Use `mclv_410_response` instead. The old hook still works but will trigger a deprecation notice.
 
 = 0.9.3 =
 * Added GitHub Actions workflow to automatically build a distributable plugin ZIP on tagged releases.
@@ -107,7 +116,7 @@ I have not tested it with other caching plugins, and there is a high chance that
 = 0.3 =
 * Bugfix: URLs containing non-ascii characters were not always recognised
 * Bugfix: URLs were displayed in encoded form on the settings page
-* Added a `wp_410_response` action to allow users to customise the response message when a deleted article is requested
+* Added a `mclv_410_response` action to allow users to customise the response message when a deleted article is requested
 
 = 0.2 =
 * Added wildcard support to URLs
