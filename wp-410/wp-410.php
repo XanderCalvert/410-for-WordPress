@@ -585,6 +585,10 @@ class MCLV_410_Plugin {
 	public function note_inserted_post( $id ) {
 		$post = get_post( $id );
 
+		if ( ! $post instanceof WP_Post ) {
+			return;
+		}
+
 		if ( 'revision' === $post->post_type || 'draft' === $post->post_status ) {
 			return;
 		}
@@ -596,7 +600,7 @@ class MCLV_410_Plugin {
 		$created_links[] = get_post_comments_feed_link( $id );  // back compat.
 
 		if ( $this->permalinks ) {
-			$created_links[] .= $created_links[0] . '*';
+			$created_links[] = $created_links[0] . '*';
 		}
 
 		foreach ( $created_links as $link ) {
