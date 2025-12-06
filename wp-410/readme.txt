@@ -3,7 +3,7 @@ Contributors: solarissmoke, XanderCalvert
 Tags: error, gone, robots
 Requires at least: 3.7
 Tested up to: 6.9
-Stable tag: 1.0.0
+Stable tag: 1.0.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -35,6 +35,13 @@ The plugin has been tested with the following caching plugins, and should work e
 I have not tested it with other caching plugins, and there is a high chance that it **will not work** with many of them. Most of them will cache the response as if it is a 404 (page not found) response, and issue a 404 response header instead of a 410 response header.
 
 == Changelog ==
+
+= 1.0.2 =
+* **Bugfix:** Updated version number in plugin header and asset versions.
+
+= 1.0.1 =
+* **Bugfix:** Fixed array assignment typo in `note_inserted_post()` method (changed `[] .=` to `[] =`).
+* **Bugfix:** Added defensive check for missing/invalid post objects to prevent errors when `get_post()` returns null.
 
 = 1.0.0 =
 * **New:** Wildcard patterns now displayed in a separate section with visual warning for better visibility.
