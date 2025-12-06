@@ -1,9 +1,12 @@
 <?xml version="1.0"?>
-<ruleset name="410 for WordPress">
-    <description>Code style rules for the 410 for WordPress plugin.</description>
+<ruleset name="HTTP 410 (Gone) responses">
+    <description>Code style rules for the HTTP 410 (Gone) responses plugin.</description>
 
     <!-- What to scan -->
     <file>wp-410</file>
+
+    <!-- Only check PHP files -->
+    <arg name="extensions" value="php"/>
 
     <!-- Ignore third-party / noise -->
     <exclude-pattern>*/vendor/*</exclude-pattern>
