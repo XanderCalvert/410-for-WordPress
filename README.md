@@ -64,6 +64,32 @@ composer lint
 composer lint-fix
 ```
 
+## Roadmap / Wishlist
+
+The following features are being considered for future releases. **Community interest and pull requests are welcome!** If you'd like to see a feature implemented faster, feel free to open an issue or submit a PR.
+
+### Potential Features
+
+- 📊 **Analytics Dashboard** - Track 410 hits, referrers, and trends over time
+- 📥 **CSV Import/Export** - Bulk import URLs from CSV or export your current list
+- 🔍 **Search & Filter** - Search and filter URLs in the admin interface
+- 🖥️ **WP-CLI Commands** - Manage 410 URLs from the command line
+- 🔌 **REST API Endpoints** - Programmatic access to manage URLs via API
+- 💡 **Smart Suggestions** - Auto-suggest URLs from 404 logs that match patterns
+- 🔗 **Plugin Integrations** - Integration with popular SEO and redirect plugins
+- ⚡ **Performance Optimizations** - Caching and query optimizations for large URL lists
+
+### Contributing
+
+Pull requests are welcome! If you're interested in implementing any of these features or have ideas for improvements, please:
+
+1. Open an issue to discuss the feature
+2. Fork the repository
+3. Create a feature branch
+4. Submit a pull request
+
+See the [Development](#development) section for setup instructions.
+
 ## Credits
 
 Originally created by [Samir Shah](http://rayofsolaris.net/) ([@solarissmoke](https://profiles.wordpress.org/solarissmoke/)).
