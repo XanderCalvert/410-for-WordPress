@@ -1,0 +1,57 @@
+name: Build Release ZIP
+
+on:
+  push:
+    tags:
+      - 'v*'
+      - '[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.0'
+      
+      - name: Read version from plugin file
+        id: get_version
+        run: |
+          VERSION=$(grep -oP 'Version:\s*\K[0-9.]+' wp-410/wp-410.php | head -1)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Detected version: $VERSION"
+      
+      - name: Create plugin ZIP
+        run: |
+          cd wp-410
+          zip -r ../wp-410-${{ steps.get_version.outputs.version }}.zip . \
+            -x "*.git*" \
+            -x "*node_modules*" \
+            -x "*vendor*" \
+            -x "*.github*" \
+            -x "*.DS_Store*"
+      
+      - name: Upload ZIP artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wp-410-${{ steps.get_version.outputs.version }}
+          path: wp-410-${{ steps.get_version.outputs.version }}.zip
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: wp-410-${{ steps.get_version.outputs.version }}.zip
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ steps.get_version.outputs.version }}
+          body: |
+            ## Version ${{ steps.get_version.outputs.version }}
+            
+            See [changelog](https://github.com/${{ github.repository }}/blob/master/wp-410/readme.txt) for details.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
