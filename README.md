@@ -28,6 +28,7 @@ Or install directly from the [WordPress Plugin Directory](https://wordpress.org/
 - 🎨 Custom 410 template support via `410.php` in your theme
 - 🪝 Developer hook: `mclv_410_response` action
 - ✅ Compatible with W3 Total Cache and WP Super Cache
+- 🖥️ **WP-CLI support** - Manage 410 URLs from the command line
 
 ## Customisation
 
@@ -41,6 +42,49 @@ Place a `410.php` file in your theme folder to customise the 410 response page. 
 add_action( 'mclv_410_response', function() {
     // Your custom logic when a 410 response is triggered
 });
+```
+
+## WP-CLI Commands
+
+Manage your 410 URLs directly from the command line:
+
+```bash
+# List all 410 and 404 entries
+wp mclv-410 list
+# or
+wp mclv-410 show
+
+# Add a URL manually (supports wildcards with *)
+wp mclv-410 add "https://example.com/deleted-page/"
+wp mclv-410 add "https://example.com/*/old-section/"
+
+# Clear all logged 404 entries
+wp mclv-410 purge-404s
+
+# Development/testing commands
+wp mclv-410 seed-test-data    # Add test data
+wp mclv-410 clear-test-data   # Remove test data
+wp mclv-410 test              # All-in-one test (seed, list, cleanup)
+wp mclv-410 dev-test          # HTTP self-test with actual requests
+```
+
+### Example Usage
+
+```bash
+# Check what URLs are currently configured
+wp mclv-410 list
+
+# Add a deleted page
+wp mclv-410 add "https://yoursite.com/old-blog-post/"
+
+# Add a wildcard pattern for an entire section
+wp mclv-410 add "https://yoursite.com/old-category/*/"
+
+# Clear all 404 logs
+wp mclv-410 purge-404s
+
+# Run a developer test to verify 410 responses are working
+wp mclv-410 dev-test
 ```
 
 ## Caching Plugin Compatibility
@@ -73,7 +117,6 @@ The following features are being considered for future releases. **Community int
 - 📊 **Analytics Dashboard** - Track 410 hits, referrers, and trends over time
 - 📥 **CSV Import/Export** - Bulk import URLs from CSV or export your current list
 - 🔍 **Search & Filter** - Search and filter URLs in the admin interface
-- 🖥️ **WP-CLI Commands** - Manage 410 URLs from the command line
 - 🔌 **REST API Endpoints** - Programmatic access to manage URLs via API
 - 💡 **Smart Suggestions** - Auto-suggest URLs from 404 logs that match patterns
 - 🔗 **Plugin Integrations** - Integration with popular SEO and redirect plugins

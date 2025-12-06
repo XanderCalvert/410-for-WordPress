@@ -3,7 +3,7 @@ Contributors: solarissmoke, XanderCalvert
 Tags: error, gone, robots
 Requires at least: 3.7
 Tested up to: 6.9
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -35,6 +35,21 @@ The plugin has been tested with the following caching plugins, and should work e
 I have not tested it with other caching plugins, and there is a high chance that it **will not work** with many of them. Most of them will cache the response as if it is a 404 (page not found) response, and issue a 404 response header instead of a 410 response header.
 
 == Changelog ==
+
+= 1.1.0 =
+* **New:** Added WP-CLI commands for managing 410 URLs from the command line.
+* **New:** `wp mclv-410 list` or `wp mclv-410 show` - List all 410 and 404 entries.
+* **New:** `wp mclv-410 add <url>` - Add URLs manually from CLI (supports wildcards with *).
+* **New:** `wp mclv-410 purge-404s` - Clear all logged 404 entries.
+* **New:** `wp mclv-410 seed-test-data` - Add test data for development/testing.
+* **New:** `wp mclv-410 clear-test-data` - Remove test data.
+* **New:** `wp mclv-410 test` - All-in-one test command (seed, list, cleanup).
+* **New:** `wp mclv-410 dev-test` - Developer HTTP self-test that performs actual HTTP requests to verify 410 responses.
+* Made `get_links()`, `get_404s()`, `add_link()`, `remove_link()`, `is_valid_url()`, and `purge_404s()` public for CLI access.
+
+= 1.0.1 =
+* **Bugfix:** Fixed array assignment typo in `note_inserted_post()` method (changed `[] .=` to `[] =`).
+* **Bugfix:** Added defensive check for missing/invalid post objects to prevent errors when `get_post()` returns null.
 
 = 1.0.0 =
 * **New:** Wildcard patterns now displayed in a separate section with visual warning for better visibility.

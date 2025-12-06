@@ -3,7 +3,7 @@
  * Plugin Name:       HTTP 410 (Gone) responses
  * Plugin URI:        https://wordpress.org/plugins/wp-410/
  * Description:       Sends HTTP 410 (Gone) responses to requests for pages that no longer exist on your blog.
- * Version:           1.0.0
+ * Version:           1.1.0
  * Author:            Samir Shah
  * Author URI:        http://rayofsolaris.net/
  * Maintainer:        Matt Calvert
@@ -96,7 +96,7 @@ class MCLV_410_Plugin {
 	 *
 	 * @return object[] Array of link rows keyed by gone_key.
 	 */
-	private function get_links() {
+	public function get_links() {
 		global $wpdb;
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table, data changes frequently, caching would show stale results.
@@ -124,7 +124,7 @@ class MCLV_410_Plugin {
 	 *
 	 * @return object[] Array of 404 link rows keyed by gone_key.
 	 */
-	private function get_404s() {
+	public function get_404s() {
 		global $wpdb;
 
 		$this->concat_404_list();
@@ -149,7 +149,7 @@ class MCLV_410_Plugin {
 	 * @param bool   $is_404 Whether this entry represents a logged 404 hit.
 	 * @return int|null      Number of rows affected when duplicate is found, otherwise void.
 	 */
-	private function add_link( $key, $is_404 = false ) {
+	public function add_link( $key, $is_404 = false ) {
 		// just supply the link.
 		global $wpdb;
 
@@ -196,6 +196,24 @@ class MCLV_410_Plugin {
 		if ( $is_404 ) {
 			$this->concat_404_list();
 		}
+	}
+
+	/**
+	 * Purge all logged 404 entries from the database.
+	 *
+	 * @return int Number of rows deleted.
+	 */
+	public function purge_404s() {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table, delete all 404 entries.
+		return $wpdb->query(
+			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"DELETE FROM {$this->table} WHERE is_404 = %d",
+				1
+			)
+		);
 	}
 
 	/**
@@ -256,7 +274,7 @@ class MCLV_410_Plugin {
 	 * @param string $key URL key to remove.
 	 * @return int|false  Rows deleted or false on error.
 	 */
-	private function remove_link( $key ) {
+	public function remove_link( $key ) {
 		global $wpdb;
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table, delete operation.
@@ -344,7 +362,7 @@ class MCLV_410_Plugin {
 			'mclv-410-admin',
 			plugin_dir_url( __FILE__ ) . 'css/admin.css',
 			array(),
-			'1.0.0'
+			'1.1.0'
 		);
 
 		// Enqueue admin JavaScript.
@@ -352,7 +370,7 @@ class MCLV_410_Plugin {
 			'mclv-410-admin',
 			plugin_dir_url( __FILE__ ) . 'js/admin.js',
 			array(),
-			'1.0.0',
+			'1.1.0',
 			true
 		);
 	}
@@ -492,7 +510,7 @@ class MCLV_410_Plugin {
 	 * @param string $link Fully qualified URL to validate.
 	 * @return bool
 	 */
-	private function is_valid_url( $link ) {
+	public function is_valid_url( $link ) {
 		// Determine whether WP will handle a request for this URL.
 		$wp_path   = wp_parse_url( home_url( '/' ), PHP_URL_PATH );
 		$link_path = wp_parse_url( $link, PHP_URL_PATH );
@@ -655,7 +673,7 @@ class MCLV_410_Plugin {
 				 * @since 0.4
 				 * @deprecated 1.0.0 Use 'mclv_410_response' instead.
 				 */
-				do_action_deprecated( 'wp_410_response', array(), '1.0.0', 'mclv_410_response' );
+				do_action_deprecated( 'wp_410_response', array(), '1.0.1', 'mclv_410_response' );
 
 				if ( ! locate_template( '410.php', true ) ) {
 					echo 'Sorry, the page you requested has been permanently removed.';
@@ -672,3 +690,12 @@ class MCLV_410_Plugin {
 
 // Bootstrap the plugin.
 new MCLV_410_Plugin();
+
+// Load WP-CLI commands if WP-CLI is available.
+// Only load in CLI context to avoid issues in normal WordPress operation.
+if ( defined( 'WP_CLI' ) && WP_CLI ) {
+	$cli_file = plugin_dir_path( __FILE__ ) . 'cli/class-mclv-410-cli.php';
+	if ( file_exists( $cli_file ) ) {
+		require_once $cli_file;
+	}
+}
