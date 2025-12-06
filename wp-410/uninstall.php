@@ -2,10 +2,11 @@
 /**
  * Cleanup tasks when uninstalling 410 for WordPress.
  *
- * @package WP_410
+ * @package MCLV_410_Plugin
  */
 
-if ( ! defined( 'ABSPATH' ) && ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
+// Exit if accessed directly or not during uninstall.
+if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit;
 }
 
@@ -14,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) && ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
  *
  * @return void
  */
-function remove_wp_410_table() {
+function mclv_410_remove_table() {
 	global $wpdb;
 
 	$table = esc_sql( $wpdb->prefix . '410_links' );
@@ -23,6 +24,6 @@ function remove_wp_410_table() {
 	$wpdb->query( "DROP TABLE IF EXISTS `$table`" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 }
 
-remove_wp_410_table();
-delete_option( 'wp_410_options_version' );
-delete_option( 'wp_410_max_404s' );
+mclv_410_remove_table();
+delete_option( 'mclv_410_options_version' );
+delete_option( 'mclv_410_max_404s' );
